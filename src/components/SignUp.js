@@ -1,7 +1,7 @@
-// src/components/SignUp.js
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Use `useNavigate` for redirection in React Router v6
 import styled from 'styled-components';
+import axios from 'axios'; // Import axios to make HTTP requests
 
 const FormContainer = styled.div`
   display: flex;
@@ -41,6 +41,9 @@ const SignUp = () => {
     password: '',
   });
 
+  const [error, setError] = useState(null);  // To handle errors during signup
+  const navigate = useNavigate();  // Correct hook for navigation in React Router v6
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -48,10 +51,24 @@ const SignUp = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle sign-up logic here
-    console.log('User signed up with data:', formData);
+
+    try {
+      // Send a POST request to the signup API endpoint
+      const response = await axios.post('http://localhost:5001/api/users/signup', formData, {
+        headers: { 'Content-Type': 'application/json' }, // Make sure the content type is JSON
+      });
+
+      console.log('Signup successful:', response.data);
+
+      // Redirect user to the login page after successful signup
+      navigate('/login');  // Use `navigate` to go to the login page
+
+    } catch (err) {
+      console.error('Signup failed:', err.response ? err.response.data : err.message);
+      setError('An error occurred while signing up. Please try again later.');  // Set error message to display
+    }
   };
 
   return (
@@ -86,6 +103,7 @@ const SignUp = () => {
           value={formData.password}
           onChange={handleChange}
         />
+        {error && <p style={{ color: 'red' }}>{error}</p>}  {/* Display error message if signup fails */}
         <Button type="submit">Sign Up</Button>
       </Form>
       <p>
